@@ -3,6 +3,12 @@ package br.com.biblioteca.organizador;
 import java.util.*;
 
 public class Biblioteca {
+	
+	//adicionar função para procurar clientes (nome, CPF, Codigo)
+	//pesquisar livros por codigo.
+	//emprestimo de livro para clientes
+	
+	
 	private Set<Clientes> ClientesRegistrados = new HashSet<Clientes>();
 	private Map<Integer, Livros> ColecaoLivros = new HashMap<>();
 

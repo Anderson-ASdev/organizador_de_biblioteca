@@ -3,15 +3,18 @@ package br.com.biblioteca.organizador;
 //import java.util.*;
 import java.time.*;
 import java.time.temporal.*;
+import java.math.BigDecimal;
 
 public class Clientes {
 
 	private String Nome;
 	private LocalDate Idade;
 	private String CPF;
+	//transformar CPF em objeto.
 	private int NumeroMatricula;
 	private static int MatriculasTotais;
 	private double multa;
+	//transformar emprestimo em um objeto e transferir metodos. E assim desenvolver histórico e emprestimos simultaneos.
 	private Livros LivrosEmprestado;
 	private LocalDate dataEmprestimo;
 	private LocalDate dataDevolucao;
@@ -37,8 +40,7 @@ public class Clientes {
 	public void devolverLivro() {
 		if (emprestimoAtrasado()) {
 			int diasAtraso = (int) ChronoUnit.DAYS.between(dataDevolucao, LocalDate.now());
-			double multa = 8.64 + 2.36 * diasAtraso;
-			this.multa = multa;
+			calcularMulta(diasAtraso);
 			throw new RuntimeException("Seu imprestimo esta " + diasAtraso 
 					+ " dias Atrasado. Para devolver o Livro pague a multa de R$" + this.multa);
 		}
@@ -47,6 +49,15 @@ public class Clientes {
 			this.dataEmprestimo = null;
 			this.dataDevolucao = null;
 		}
+
+	private BigDecimal calcularMulta(int diasAtraso) {
+		BigDecimal multa = new BigDecimal(8.50);
+		BigDecimal jurosPorDia = new BigDecimal(2.50).multiply(new BigDecimal(diasAtraso));
+		multa = multa.add(jurosPorDia);
+		return multa;
+	}
+	
+	
 	public void pagarMulta() {
 		this.multa = 0;
 		this.dataDevolucao = LocalDate.now();
