@@ -4,20 +4,19 @@ package br.com.biblioteca.organizador;
 import java.time.*;
 import java.time.temporal.*;
 import java.math.BigDecimal;
+import java.util.*;
 
 public class Clientes {
 
-	private String Nome;
-	private LocalDate Idade;
-	private String CPF;
-	//transformar CPF em objeto.
-	private int NumeroMatricula;
+	private String nome;
+	private LocalDate idade;
+	private String cpf;
+	private int numeroMatricula;
 	private static int MatriculasTotais;
-	private double multa;
-	//transformar emprestimo em um objeto e transferir metodos. E assim desenvolver histórico e emprestimos simultaneos.
-	private Livros LivrosEmprestado;
-	private LocalDate dataEmprestimo;
-	private LocalDate dataDevolucao;
+	private BigDecimal multa;
+	// histórico e emprestimos simultaneos.
+	private List<Emprestimo> emprestimosPassados = new ArrayList<>();
+	private Emprestimo emprestimoAtual;
 
 	public Clientes(String nome, String cPF, int ano, int mes, int dia) {
 		if (nome == null || cPF == null || ano == 0 || mes == 0 || dia == 0) {
@@ -31,111 +30,86 @@ public class Clientes {
 		if (LocalDate.now().compareTo(idade) < 0) {
 			throw new DateTimeException("A data é invalida");
 		}
-		this.Idade = idade;
-		this.Nome = nome;
-		this.CPF = cPF;
+		this.idade = idade;
+		this.nome = nome;
+		this.cpf = cPF;
 		MatriculasTotais++;
-		this.NumeroMatricula = (int) ((int) MatriculasTotais * 1000 * Math.random());
+		this.numeroMatricula = (int) ((int) MatriculasTotais + 1000);
 	}
-	public void devolverLivro() {
-		if (emprestimoAtrasado()) {
-			int diasAtraso = (int) ChronoUnit.DAYS.between(dataDevolucao, LocalDate.now());
-			calcularMulta(diasAtraso);
-			throw new RuntimeException("Seu imprestimo esta " + diasAtraso 
-					+ " dias Atrasado. Para devolver o Livro pague a multa de R$" + this.multa);
-		}
-			this.LivrosEmprestado.setDisponivel(true);
-			this.LivrosEmprestado = null;
-			this.dataEmprestimo = null;
-			this.dataDevolucao = null;
-		}
 
-	private BigDecimal calcularMulta(int diasAtraso) {
-		BigDecimal multa = new BigDecimal(8.50);
-		BigDecimal jurosPorDia = new BigDecimal(2.50).multiply(new BigDecimal(diasAtraso));
-		multa = multa.add(jurosPorDia);
-		return multa;
+	public void devolucao() {
+		this.emprestimoAtual.getLivrosEmprestado().setDisponivel(true);
+		emprestimosPassados.add(emprestimoAtual);
+		this.emprestimoAtual = null;
 	}
-	
-	
+
+	public boolean verificarAtraso() {
+		if (LocalDate.now().compareTo(this.emprestimoAtual.getDataDevolucao()) > 0) {
+			this.emprestimoAtual.setAtrasado(true);
+		}
+		return this.emprestimoAtual.isAtrasado();
+	}
+
+	public void calcularMulta() {
+		int diasAtraso = (int) ChronoUnit.DAYS.between(this.emprestimoAtual.getDataDevolucao(), LocalDate.now());
+		if (diasAtraso > 0) {
+			BigDecimal multa = new BigDecimal(8.50);
+			BigDecimal jurosPorDia = new BigDecimal(1.50).multiply(new BigDecimal(diasAtraso));
+			multa = multa.add(jurosPorDia);
+			this.multa = multa;
+		}
+	}
+
 	public void pagarMulta() {
-		this.multa = 0;
-		this.dataDevolucao = LocalDate.now();
+		this.multa = new BigDecimal(0);
+		this.emprestimoAtual.setDataDevolucao(LocalDate.now());
 	}
-	public boolean emprestimoAtrasado() {
-		return LocalDate.now().compareTo(dataDevolucao) > 0;
-
-	}
-	public boolean isLivroEmprestado() {
-		if (this.LivrosEmprestado != null) {
-			return true;
-		}
-			return false;
-		}
-	// metodo unico EmprestimoDeLivros
-	public void EmprestaLivros(Livros livro) {
-
-		if (!livro.isDisponivel()) {
-			throw new RuntimeException("O livro" + livro.toString() + "Não está disponivel");
-		}
-		if (isLivroEmprestado()) {
-			throw new RuntimeException("Já possui um emprestimo em andamento");
-		}
-		
-			this.dataEmprestimo = LocalDate.now();
-			this.dataDevolucao = dataEmprestimo.plusDays(20);
-
-			if (dataDevolucao.getDayOfWeek().getValue() == 7) { // Caso seja Domingo
-				this.dataDevolucao = dataDevolucao.plusDays(1);
-			}
-			this.LivrosEmprestado = livro;
-			this.LivrosEmprestado.setDisponivel(false);
-		}
 
 	@Override
 	public String toString() {
-		return "NOME: " + this.Nome.toUpperCase() + ", CPF: " + this.CPF;
+		return "NOME: " + this.nome.toUpperCase() + ", Matricula: " + this.numeroMatricula;
 	}
 
 	// getters Padrões
 	public String getNome() {
-		return Nome;
+		return nome;
 	}
 
 	public LocalDate getIdade() {
-		return Idade;
+		return idade;
 	}
 
 	public String getCPF() {
-		return CPF;
+		return cpf;
 	}
 
 	public int getNumeroMatricula() {
-		return NumeroMatricula;
+		return numeroMatricula;
 	}
 
 	public static int getMatriculasTotais() {
 		return MatriculasTotais;
 	}
 
-	public Livros getLivrosEmprestado() {
-		return LivrosEmprestado;
+	public Emprestimo getEmprestimoAtual() {
+		return emprestimoAtual;
 	}
 
-	public LocalDate getDataEmprestimo() {
-		return dataEmprestimo;
-	}
-
-	public LocalDate getDataDevolução() {
-		return dataDevolucao;
+	public void setEmprestimoAtual(Emprestimo emprestimoAtual) {
+		this.emprestimoAtual = emprestimoAtual;
 	}
 
 	// setter para teste
 	public void setDataDevolucao(LocalDate dataDevolucao) {
-		this.dataDevolucao = dataDevolucao;
+		this.emprestimoAtual.setDataDevolucao(dataDevolucao);
 	}
 
-	public double getMulta() {
+	public BigDecimal getMulta() {
 		return multa;
+	}
+
+	public void setMulta(int i) {
+		// TODO Stub de método gerado automaticamente
+
 	}
 }

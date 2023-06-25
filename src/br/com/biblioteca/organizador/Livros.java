@@ -83,15 +83,16 @@ public class Livros {
 	}
 
 	public void setGenero(String genero) {
+		
 		for (Entry<String, Map<String, String>> generos : tipos.entrySet()) {
 			if (generos.getValue().containsKey(genero)) {
 				this.genero = generos.getValue().get(genero);
 				this.tipo = generos.getKey().toString();
-				this.setID();
+				setID();
 				return;
 			}
 		}
-			throw new NoSuchElementException("Opção " + genero + "não registrada no sistema");
+		throw new NoSuchElementException("Opção " + genero + "não registrada no sistema");
 	}
 
 	protected void setID() {
@@ -121,19 +122,6 @@ public class Livros {
 	}
 
 	// getter
-	public void getinfo() {
-		System.out.println("titulo: " + getTitulo());
-		System.out.println("Autor: " + getAutor());
-		System.out.println("Ano: " + getAno());
-		System.out.println("Genero: " + getGenero());
-
-		if (isDisponivel()) {
-			System.out.println("Disponibilidade: Disponivel.");
-		} else {
-			System.out.println("Disponibilidade: Alugado.");
-		}
-		System.out.println("CODIGO: " + getID());
-	}
 
 	public String getTitulo() {
 		return titulo;
